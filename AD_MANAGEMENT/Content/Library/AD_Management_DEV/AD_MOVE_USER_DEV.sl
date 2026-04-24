@@ -56,7 +56,7 @@ flow:
     - Move_User:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
-            - host: '${AD_Host}'
+            - host: '${PowershellHost}'
             - username: '${AD_AdminUser}'
             - password:
                 value: '${AD_AdminPass}'
