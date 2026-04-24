@@ -8,6 +8,7 @@ flow:
         default: 'KIBB$#@!qwer4321'
         sensitive: true
     - EmailAddress: itsm_testuser
+    - TargetOU
   workflow:
     - Get_FullName:
         do_external:
@@ -35,7 +36,7 @@ flow:
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
-            - filter: "${'(&(objectClass=person)(mail=' + EmailAddress + '))'}"
+            - filter: "${'(&(objectClass=organizationalUnit)(distinguishedName='+ TargetOU + '))'}"
             - propertyName: sAMAccountName
             - DN: 'DC=kenanga,DC=local'
             - port: '636'

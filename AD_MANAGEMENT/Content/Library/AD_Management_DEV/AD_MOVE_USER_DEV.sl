@@ -12,9 +12,9 @@ flow:
         default: 'KIBB$#@!qwer4321'
         required: false
         sensitive: true
-    - TargetOU: 'OU=POC ITSM 02,DC=kenanga,DC=local'
+    - TargetOU: 'OU=POC ITSM 01,DC=kenanga,DC=local'
     - OriginalUserDN:
-        default: 'CN=ITSM Test User,OU=POC ITSM 01,DC=kenanga,DC=local'
+        default: 'CN=ITSM Test User,OU=POC ITSM 02,DC=kenanga,DC=local'
         sensitive: false
     - PowershellHost: 172.21.5.157
   workflow:
@@ -45,12 +45,11 @@ flow:
                 value: '${AD_AdminPass}'
                 sensitive: true
             - filter: "${'(|(&(objectClass=organizationalUnit)(distinguishedName='+ TargetOU + '))(&(objectClass=container)(distinguishedName='+ TargetOU + ')))'}"
-            - propertyName: cn
+            - propertyName: distinguishedName
             - DN: 'DC=kenanga,DC=local'
             - port: '636'
         publish:
           - moveUserResult: '${returnResult}'
-          - getUserFullName: "${cs_regex(returnResult, \"^CN=([^,\\\\\\\\]*(?:\\\\\\\\,[^,\\\\\\\\]*)*)\")}"
         navigate:
           - failure: FAILURE
           - success: Move_User
