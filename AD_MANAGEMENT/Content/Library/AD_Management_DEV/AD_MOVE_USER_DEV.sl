@@ -12,9 +12,9 @@ flow:
         default: 'KIBB$#@!qwer4321'
         required: false
         sensitive: true
-    - TargetOU: 'OU=POC ITSM 01,DC=kenanga,DC=local'
+    - TargetOU: 'OU=POC ITSM 02,DC=kenanga,DC=local'
     - OriginalUserDN:
-        default: 'CN=ITSM Test User,OU=POC ITSM 02,DC=kenanga,DC=local'
+        default: 'CN=ITSM Test User,OU=POC ITSM 01,DC=kenanga,DC=local'
         sensitive: false
     - PowershellHost: 172.21.5.157
   workflow:
@@ -32,7 +32,7 @@ flow:
             - port: '636'
         publish:
           - moveUserResult: '${returnResult}'
-          - getUserFullName: "${cs_regex(returnResult, \"^CN=([^,\\\\\\\\]*(?:\\\\\\\\,[^,\\\\\\\\]*)*)\")}"
+          - getUserFullName: '${returnResult}'
         navigate:
           - failure: FAILURE
           - success: Check_TargetOU
@@ -98,17 +98,6 @@ flow:
           - checkMoveUserResult: '${returnResult}'
         navigate:
           - success: SUCCESS
-          - failure: Search_and_Replace
-    - Search_and_Replace:
-        do_external:
-          6a537995-25a9-4af6-b09d-efc1db705929:
-            - input: '${checkMoveUserResult}'
-            - replace: '${checkMoveUserResult}'
-            - replaceWith: Move Unsuccessfully
-        publish:
-          - moveUserResult: '${result}'
-        navigate:
-          - success: FAILURE
           - failure: FAILURE
   outputs:
     - OOResult: '${resetPasswordResult}'
@@ -150,17 +139,10 @@ extensions:
         x: 720
         'y': 200
         navigate:
-          b1b149ef-cd48-4b3a-f295-e1cd881c0b5d:
+          125d5f18-ddbc-a2a6-296f-69d7b2143bf8:
             targetId: bbb40bf1-c677-e76b-14a0-e50aa3c42f67
             port: success
-      Search_and_Replace:
-        x: 720
-        'y': 40
-        navigate:
-          1205f3aa-e0d0-18e5-0fab-ce57186c796b:
-            targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
-            port: success
-          095d83f9-ffab-936c-5a11-4d03d8c80ae1:
+          74ea0f7f-52d5-03bd-cbb4-5d2810b06f9d:
             targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
             port: failure
     results:
