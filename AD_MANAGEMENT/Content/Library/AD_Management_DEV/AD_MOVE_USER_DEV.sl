@@ -53,17 +53,16 @@ flow:
           - getUserFullName: "${cs_regex(returnResult, \"^CN=([^,\\\\\\\\]*(?:\\\\\\\\,[^,\\\\\\\\]*)*)\")}"
         navigate:
           - failure: FAILURE
-          - success: Start_Powershell_Session
+          - success: Move_User
     - Move_User:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
-            - host: '${PowershellHost}'
+            - host: '${AD_Host}'
             - username: '${AD_AdminUser}'
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
             - port: '5985'
-            - runspaceID: '${runspaceID}'
             - script: "${'try { Move-ADObject -Identity \"'+ OriginalUserDN + '\" -TargetPath \"'+ TargetOU +'\" -ErrorAction Stop; Write-Output \"SUCCESS: User moved successfully\"} catch { Write-Output \"FAILED: $($_.Exception.Message)\"}'}"
         publish:
           - moveUserResult: '${returnResult}'
@@ -112,23 +111,6 @@ flow:
         navigate:
           - success: FAILURE
           - failure: FAILURE
-    - Start_Powershell_Session:
-        do_external:
-          f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
-            - host: '${PowershellHost}'
-            - username: '${AD_AdminUser}'
-            - password:
-                value: '${AD_AdminPass}'
-                sensitive: true
-            - port: '5985'
-            - runspaceID: MoveUser
-            - script: Start-Process powershell -Verb RunAs
-        publish:
-          - moveUserResult: '${returnResult}'
-          - runspaceID
-        navigate:
-          - success: Move_User
-          - failure: FAILURE
   outputs:
     - OOResult: '${resetPasswordResult}'
   results:
@@ -153,7 +135,7 @@ extensions:
             port: failure
       Move_User:
         x: 520
-        'y': 480
+        'y': 360
         navigate:
           f201d57a-3b49-e442-15fb-20e1bb1bd30f:
             targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
@@ -180,13 +162,6 @@ extensions:
             targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
             port: success
           095d83f9-ffab-936c-5a11-4d03d8c80ae1:
-            targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
-            port: failure
-      Start_Powershell_Session:
-        x: 520
-        'y': 360
-        navigate:
-          d7391dbf-90aa-d548-b533-5768f45a2289:
             targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
             port: failure
     results:
