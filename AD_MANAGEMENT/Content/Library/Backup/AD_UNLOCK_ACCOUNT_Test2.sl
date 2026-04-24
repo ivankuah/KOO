@@ -7,7 +7,7 @@ flow:
     - AD_AdminPass:
         default: 'KIBB$#@!qwer4321'
         sensitive: true
-    - EmailAddress
+    - EmailAddress: itsm_testuser
   workflow:
     - Get_FullName:
         do_external:
@@ -17,8 +17,8 @@ flow:
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
-            - filter: "${'(&(objectClass=person)(mail=' + EmailAddress + '))'}"
-            - propertyName: cn
+            - filter: "${'(&(objectClass=person)(sAMAccountName=' + EmailAddress + '))'}"
+            - propertyName: distinguishedName
             - DN: 'DC=kenanga,DC=local'
             - port: '636'
         publish:
