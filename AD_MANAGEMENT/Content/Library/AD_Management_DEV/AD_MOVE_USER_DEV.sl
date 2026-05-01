@@ -100,7 +100,7 @@ flow:
           - success: SUCCESS
           - failure: FAILURE
   outputs:
-    - OOResult: '${resetPasswordResult}'
+    - OOResult: '${moveUserResult}'
   results:
     - FAILURE
     - SUCCESS

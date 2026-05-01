@@ -13,12 +13,13 @@ flow:
         required: false
         sensitive: true
     - UserFullName:
+        default: ITSM Test User
         sensitive: false
-    - Username
-    - Password
-    - EmailAddress
-    - JobTitle
-    - Company
+    - Username: itsm_testuser
+    - Password: Welcome123..
+    - EmailAddress: temp_testuser@kenanga.com.my
+    - JobTitle: System Engineer
+    - Company: KIBB
     - Department
     - Manager
     - FirstName
@@ -116,8 +117,10 @@ flow:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
-            - URI: '${AD_AdminUser}'
-            - shellURI: '${AD_AdminPass}'
+            - username: '${AD_AdminUser}'
+            - password:
+                value: '${AD_AdminPass}'
+                sensitive: true
             - port: '5985'
             - script: "${'try { Set-ADUser -Identity ' + Username +' -GivenName \"'+ FirstName + '\" -Surname \"' + LastName + '\" -DisplayName \"' + UserFullName + '\" -EmailAddress \"' + EmailAddress + '\" -ErrorAction Stop; Write-Host \"Update successful\" } catch { Write-Host \"Update failed: $($_.Exception.Message)\" }'}"
         publish:
@@ -272,6 +275,8 @@ flow:
             - stateOrProvince: '${State}'
             - zipOrPostalCode: '${PostalCode}'
             - countryOrRegion: '${Country}'
+        publish:
+          - createUserResult: '${returnResult}'
         navigate:
           - success: Set_User_ProxyAddress_After_Replaced
           - failure: FAILURE
@@ -291,14 +296,16 @@ flow:
             - zipOrPostalCode: '${PostalCode}'
             - countryOrRegion: '${Country}'
         navigate:
-          - success: Set_User_ProxyAddress_After_Replaced_1
+          - success: Set_User_ProxyAddress
           - failure: FAILURE
     - Set_User_ProxyAddress_After_Replaced:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
-            - URI: '${AD_AdminUser}'
-            - shellURI: '${AD_AdminPass}'
+            - username: '${AD_AdminUser}'
+            - password:
+                value: '${AD_AdminPass}'
+                sensitive: true
             - port: '5985'
             - script: "${'try { Set-ADUser -Identity '+ Username +' -Add @{proxyAddresses=@(\"smtp:'+ Username +'@kenanga.mail.onmicrosoft.com\",\"smtp:'+ Username +'@kenanga.local\",\"SMTP:'+ EmailAddress +'\")} -ErrorAction Stop; Write-Host \"ProxyAddresses Successful Added\" } catch { Write-Host \"ProxyAddresses Failed Added\"; Write-Host \"Error: $($_.Exception.Message)\" }'}"
         publish:
@@ -306,7 +313,7 @@ flow:
         navigate:
           - success: Check_User_After_User_Created
           - failure: FAILURE
-    - Set_User_ProxyAddress_After_Replaced_1:
+    - Set_User_ProxyAddress:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
@@ -321,6 +328,7 @@ flow:
           - failure: FAILURE
   outputs:
     - OOResult: '${createUserResult}'
+    - UserPassword: '${Password}'
   results:
     - SUCCESS
     - FAILURE
@@ -329,7 +337,7 @@ extensions:
     steps:
       Check_User:
         x: 760
-        'y': 0
+        'y': 100
         navigate:
           7aac776d-43e7-f31d-f407-6142656dcaf1:
             targetId: 3dd2ebe2-73c5-c308-0169-fcfd9b2fc9e0
@@ -351,13 +359,6 @@ extensions:
           7ed1d79b-94a3-dcc3-0573-d808f6436d8b:
             targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
             port: success
-      Set_User_ProxyAddress_After_Replaced_1:
-        x: 960
-        'y': 1080
-        navigate:
-          09dbd1e6-c813-56e1-aaec-0496dd83f1fc:
-            targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
-            port: failure
       Set_User_Organization_After_Replaced:
         x: 480
         'y': 920
@@ -440,6 +441,13 @@ extensions:
         'y': 920
         navigate:
           f91dd5ba-91fa-c0a6-275d-7c7e2a8cd1d2:
+            targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
+            port: failure
+      Set_User_ProxyAddress:
+        x: 960
+        'y': 1080
+        navigate:
+          09dbd1e6-c813-56e1-aaec-0496dd83f1fc:
             targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
             port: failure
       Set_User_General_Information:

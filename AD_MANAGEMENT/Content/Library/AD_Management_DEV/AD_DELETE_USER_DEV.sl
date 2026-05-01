@@ -12,8 +12,8 @@ flow:
         default: 'KIBB$#@!qwer4321'
         required: false
         sensitive: true
-    - UserFullName
-    - OU
+    - UserFullName: ITSM Test User
+    - OU: OU=POC ITSM 02
     - PowershellHost: 172.21.5.157
   workflow:
     - Check_User:
@@ -82,7 +82,7 @@ flow:
     - Search_and_Replace:
         do_external:
           6a537995-25a9-4af6-b09d-efc1db705929:
-            - input: '${getUserFullNameResult}'
+            - input: '${UserFullName}'
             - replace: "\\,"
             - replaceWith: ','
         publish:
@@ -134,9 +134,9 @@ flow:
         publish:
           - deleteUserResult: '${returnResult}'
         navigate:
-          - success: Rename_User_Display_Name_After_Replaced_1
+          - success: Rename_User_Common_Name
           - failure: FAILURE
-    - Rename_User_Display_Name_After_Replaced_1:
+    - Rename_User_Common_Name:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
@@ -197,7 +197,7 @@ extensions:
     steps:
       Check_User:
         x: 560
-        'y': 0
+        'y': 40
         navigate:
           9cda27ab-c97e-7110-408b-e44ca79377dc:
             targetId: 48ea08fe-77dc-b9d4-b74c-9c2dfec02c46
@@ -229,7 +229,7 @@ extensions:
           5d89d936-1589-a423-6275-0f0555d1e05d:
             targetId: 48ea08fe-77dc-b9d4-b74c-9c2dfec02c46
             port: failure
-      Rename_User_Display_Name_After_Replaced_1:
+      Rename_User_Common_Name:
         x: 720
         'y': 400
         navigate:

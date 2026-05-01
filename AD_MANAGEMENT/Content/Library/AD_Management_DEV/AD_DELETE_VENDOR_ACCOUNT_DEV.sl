@@ -12,8 +12,8 @@ flow:
         default: 'KIBB$#@!qwer4321'
         required: false
         sensitive: true
-    - UserFullName
-    - OU
+    - UserFullName: ITSM Test User
+    - OU: OU=POC ITSM 02
   workflow:
     - Check_User:
         do_external:
