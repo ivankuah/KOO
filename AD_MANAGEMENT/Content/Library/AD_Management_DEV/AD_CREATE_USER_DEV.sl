@@ -13,24 +13,24 @@ flow:
         required: false
         sensitive: true
     - UserFullName:
-        default: ITSM Test User
+        default: ITSM Test User 9
         sensitive: false
-    - Username: itsm_testuser
+    - Username: itsm_testuser9
     - Password: Welcome123..
-    - EmailAddress: temp_testuser@kenanga.com.my
+    - EmailAddress: itsm_testuser9@kenanga.com.my
     - JobTitle: System Engineer
     - Company: KIBB
-    - Department
-    - Manager
-    - FirstName
-    - LastName
-    - OU
+    - Department: GDTT
+    - Manager: 'CN=Moh Juinn Heng,OU=Group Technology,OU=Kenanga Investment Bank,DC=kenanga,DC=local'
+    - FirstName: Test User 9
+    - LastName: ITSM
+    - OU: OU=POC ITSM 01
     - PowershellHost: 172.21.5.157
-    - Street
-    - City
-    - State
-    - PostalCode
-    - Country
+    - Street: 'Continental, Kuchai Lama'
+    - City: Kuala Lumpur
+    - State: KL
+    - PostalCode: '58200'
+    - Country: 'Malaysia,MY,458'
   workflow:
     - Check_User:
         do_external:
@@ -46,7 +46,7 @@ flow:
             - port: '636'
         publish:
           - checkUserExistResult: '${returnResult}'
-          - createUserResult: '${returnResult}'
+          - createUserResult: "${returnResult + ' user exists in AD'}"
         navigate:
           - failure: String_Comparator
           - success: SUCCESS
@@ -136,7 +136,7 @@ flow:
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
-            - filter: "${'(&(objectClass=person)(mail=' + EmailAddress + '))'}"
+            - filter: "${'(&(objectClass=person)(sAMAccountName=' + Username + '))'}"
             - propertyName: cn
             - DN: 'DC=kenanga,DC=local'
             - port: '636'
@@ -208,8 +208,10 @@ flow:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
-            - URI: '${AD_AdminUser}'
-            - shellURI: '${AD_AdminPass}'
+            - username: '${AD_AdminUser}'
+            - password:
+                value: '${AD_AdminPass}'
+                sensitive: true
             - port: '5985'
             - script: "${'try { Set-ADUser -Identity ' + Username +' -GivenName \"'+ FirstName + '\" -Surname \"' + LastName + '\" -DisplayName \"' + UserFullName + '\" -EmailAddress \"' + EmailAddress + '\" -ErrorAction Stop; Write-Host \"Update successful\" } catch { Write-Host \"Update failed: $($_.Exception.Message)\" }'}"
         publish:
@@ -256,7 +258,7 @@ flow:
             - replace: '${getErrorResult}'
             - replaceWith: User Create Failed
         publish:
-          - createUserResult: '${result}'
+          - createUserResult: '${resultString}'
         navigate:
           - success: FAILURE
           - failure: on_failure
@@ -295,6 +297,8 @@ flow:
             - stateOrProvince: '${State}'
             - zipOrPostalCode: '${PostalCode}'
             - countryOrRegion: '${Country}'
+        publish:
+          - createUserResult: '${returnResult}'
         navigate:
           - success: Set_User_ProxyAddress
           - failure: FAILURE
@@ -311,18 +315,27 @@ flow:
         publish:
           - createUserResult: '${returnResult}'
         navigate:
-          - success: Check_User_After_User_Created
+          - success: Sleep
           - failure: FAILURE
     - Set_User_ProxyAddress:
         do_external:
           f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
             - host: '${PowershellHost}'
-            - URI: '${AD_AdminUser}'
-            - shellURI: '${AD_AdminPass}'
+            - username: '${AD_AdminUser}'
+            - password:
+                value: '${AD_AdminPass}'
+                sensitive: true
             - port: '5985'
             - script: "${'try { Set-ADUser -Identity '+ Username +' -Add @{proxyAddresses=@(\"smtp:'+ Username +'@kenanga.mail.onmicrosoft.com\",\"smtp:'+ Username +'@kenanga.local\",\"SMTP:'+ EmailAddress +'\")} -ErrorAction Stop; Write-Host \"ProxyAddresses Successful Added\" } catch { Write-Host \"ProxyAddresses Failed Added\"; Write-Host \"Error: $($_.Exception.Message)\" }'}"
         publish:
           - createUserResult: '${returnResult}'
+        navigate:
+          - success: Sleep
+          - failure: FAILURE
+    - Sleep:
+        do_external:
+          d1bbf441-824a-450e-afae-2ddec0e0f35e:
+            - seconds: '10'
         navigate:
           - success: Check_User_After_User_Created
           - failure: FAILURE
@@ -337,7 +350,7 @@ extensions:
     steps:
       Check_User:
         x: 760
-        'y': 100
+        'y': 80
         navigate:
           7aac776d-43e7-f31d-f407-6142656dcaf1:
             targetId: 3dd2ebe2-73c5-c308-0169-fcfd9b2fc9e0
@@ -429,6 +442,13 @@ extensions:
           505b9355-8694-a6ff-3205-e5b7571b15c1:
             targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
             port: failure
+      Sleep:
+        x: 720
+        'y': 1320
+        navigate:
+          6f770f1b-2608-519f-9cdf-2141ec94f030:
+            targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b
+            port: failure
       Set_User_Account_After_Replaced:
         x: 480
         'y': 600
@@ -445,7 +465,7 @@ extensions:
             port: failure
       Set_User_ProxyAddress:
         x: 960
-        'y': 1080
+        'y': 1120
         navigate:
           09dbd1e6-c813-56e1-aaec-0496dd83f1fc:
             targetId: 1bb10cc8-5c27-9232-b101-5c93ac8c0b5b

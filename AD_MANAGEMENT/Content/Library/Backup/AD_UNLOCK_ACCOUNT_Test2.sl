@@ -8,62 +8,37 @@ flow:
         default: 'KIBB$#@!qwer4321'
         sensitive: true
     - EmailAddress: itsm_testuser
-    - TargetOU
   workflow:
-    - Get_FullName:
+    - Rename_User_Display_Name:
         do_external:
-          6f9d9ce8-c6c2-40ea-a5f9-66bdef9c27ad:
-            - host: '${AD_Host}'
+          f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
+            - host: 172.21.5.157
             - username: '${AD_AdminUser}'
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
-            - filter: "${'(&(objectClass=person)(sAMAccountName=' + EmailAddress + '))'}"
-            - propertyName: distinguishedName
-            - DN: 'DC=kenanga,DC=local'
-            - port: '636'
+            - port: '5985'
+            - script: 'try { Set-ADUser -Identity "itsm_testuser7 " -DisplayName "ITSM Test User 7" -ErrorAction Stop; Write-Host "Update successful" } catch { Write-Host "Update failed: $($_.Exception.Message)" }'
         publish:
-          - fullNameResult: '${returnResult}'
-          - unlockAccountResult: '${returnResult}'
+          - deleteUserResult: '${returnResult}'
         navigate:
+          - success: Rename_User_Common_Name
           - failure: FAILURE
-          - success: Get_LoginName
-    - Get_LoginName:
+    - Rename_User_Common_Name:
         do_external:
-          6f9d9ce8-c6c2-40ea-a5f9-66bdef9c27ad:
-            - host: '${AD_Host}'
+          f0b2afd2-5733-47e4-80ba-7f2387cc66d5:
+            - host: 172.21.5.157
             - username: '${AD_AdminUser}'
             - password:
                 value: '${AD_AdminPass}'
                 sensitive: true
-            - filter: "${'(&(objectClass=organizationalUnit)(distinguishedName='+ TargetOU + '))'}"
-            - propertyName: sAMAccountName
-            - DN: 'DC=kenanga,DC=local'
-            - port: '636'
+            - port: '5985'
+            - script: 'try { Rename-ADObject -Identity "CN=r_ITSM Test User 7,OU=POC ITSM 02,DC=kenanga,DC=local" -NewName "ITSM Test User 7" -ErrorAction Stop; Write-Host "Update successful" } catch { Write-Host "Update failed: $($_.Exception.Message)" }'
         publish:
-          - loginNameResult: '${returnResult}'
-          - unlockAccountResult: '${returnResult}'
+          - deleteUserResult: '${returnResult}'
         navigate:
-          - failure: FAILURE
-          - success: Get_UserDN
-    - Get_UserDN:
-        do_external:
-          6f9d9ce8-c6c2-40ea-a5f9-66bdef9c27ad:
-            - host: '${AD_Host}'
-            - username: '${AD_AdminUser}'
-            - password:
-                value: '${AD_AdminPass}'
-                sensitive: true
-            - filter: "${'(&(objectClass=person)(mail=' + EmailAddress + '))'}"
-            - propertyName: distinguishedName
-            - DN: 'DC=kenanga,DC=local'
-            - port: '636'
-        publish:
-          - dnResult: "${cs_regex(returnResult, \"^CN=[^,\\\\\\\\]*(?:\\\\\\\\.[^,\\\\\\\\]*)*,((?:(?:CN|OU)=[^,\\\\\\\\]*(?:\\\\\\\\.[^,\\\\\\\\]*)*)(?:,(?:CN|OU)=[^,\\\\\\\\]*(?:\\\\\\\\.[^,\\\\\\\\]*)*)*)?,DC=\")}"
-          - unlockAccountResult: '${returnResult}'
-        navigate:
-          - failure: FAILURE
           - success: SUCCESS
+          - failure: FAILURE
   outputs:
     - unlockAccountResult: '${unlockAccountResult}'
   results:
@@ -72,30 +47,23 @@ flow:
 extensions:
   graph:
     steps:
-      Get_FullName:
-        x: 280
-        'y': 120
-        navigate:
-          80f69eee-8524-3dfd-f114-9cb1e6beef96:
-            targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
-            port: failure
-      Get_LoginName:
+      Rename_User_Display_Name:
         x: 480
-        'y': 120
+        'y': 200
         navigate:
-          4292f322-d1c3-56b8-389f-957157e7bdee:
+          158073bc-c4c5-bb74-548d-1d44c2362e70:
             targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
             port: failure
-      Get_UserDN:
+      Rename_User_Common_Name:
         x: 680
-        'y': 120
+        'y': 200
         navigate:
-          8d91523c-0228-26c4-13ad-35a7c905ce54:
-            targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
-            port: failure
-          b3270698-4b8d-21e2-a21a-cd8056df2c3e:
+          cf78224b-1644-55bb-9262-47a77d36aecd:
             targetId: 155be301-aca3-f450-91a9-f10865e03b6b
             port: success
+          fefc82a6-b64d-ee83-d101-17b8c403e7d4:
+            targetId: 1be41d02-a4a7-513a-a73e-fc1ae38e2deb
+            port: failure
     results:
       SUCCESS:
         155be301-aca3-f450-91a9-f10865e03b6b:
